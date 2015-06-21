@@ -140,17 +140,17 @@ namespace Wunk8
 		case 0x3: // SE : Skip if Equal immediate
 		{
 			// Keep things branchless
-			Registers.PC += 2 * (Registers.V[(Opcode & 0x0F00) >> 8] == (Opcode & 0xFF));
+			Registers.PC += 2 * (Registers.V[(Opcode >> 8) & 0xF] == (Opcode & 0xFF));
 			break;
 		}
 		case 0x4: // SNE : Skip if not Equal immediate
 		{
-			Registers.PC += 2 * (Registers.V[(Opcode & 0x0F00) >> 8] != (Opcode & 0xFF));
+			Registers.PC += 2 * (Registers.V[(Opcode >> 8) & 0xF] != (Opcode & 0xFF));
 			break;
 		}
 		case 0x5: // SE : Skip if registers equal
 		{
-			Registers.PC += 2 * (Registers.V[(Opcode & 0x0F00) >> 8] == Registers.V[(Opcode & 0x00F0) >> 4]);
+			Registers.PC += 2 * (Registers.V[(Opcode >> 8) & 0xF] == Registers.V[(Opcode >> 4) & 0xF]);
 			break;
 		}
 		case 0x6: // LD : Load immediate
@@ -248,8 +248,8 @@ namespace Wunk8
 		}
 		case 0xC: // Random number generator
 		{
-			Registers.V[(Opcode & 0xF00) >> 8] = std::uniform_int_distribution<size_t>(0, 0xFF)(RandEng);
-			Registers.V[(Opcode & 0xF00) >> 8] &= (Opcode & 0xFF);
+			Registers.V[(Opcode >> 8) & 0xF] = std::uniform_int_distribution<size_t>(0, 0xFF)(RandEng);
+			Registers.V[(Opcode >> 8) & 0xF] &= (Opcode & 0xFF);
 			break;
 		}
 		case 0xD: // Draw 8xN sprite at (x,y) with collision flag
