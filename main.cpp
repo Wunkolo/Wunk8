@@ -2,7 +2,7 @@
 #include "Wunk8.hpp"
 #include <thread>
 
-// Blech....
+#if defined _WIN32 || defined _WIN64
 #include <windows.h>
 void clrscreen()
 {
@@ -17,6 +17,16 @@ void clrscreen()
 	FillConsoleOutputAttribute(h, csbi.wAttributes, size, coord, &n);
 	SetConsoleCursorPosition(h, coord);
 }
+#elif defined __unix__
+void clrscreen()
+{
+	puts("\033[2J\033[1;1H");
+}
+#else
+void clrscreen()
+{
+}
+#endif
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
