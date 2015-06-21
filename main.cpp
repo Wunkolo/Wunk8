@@ -60,9 +60,9 @@ int main(size_t argc, char *argv[])
 		{
 			Frame++;
 			// Quickly generate an image sequence to string together later
-			stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 1, Console.GetScreen(), 64);
-			//clrscreen();
-			//std::cout << RenderScreen(Console.GetScreen(), 64, 32);
+			//stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 1, Console.GetScreen(), 64);
+			clrscreen();
+			std::cout << RenderScreen(Console.GetScreen(), 64, 32);
 			std::this_thread::sleep_for(std::chrono::milliseconds(16));
 		}
 	}

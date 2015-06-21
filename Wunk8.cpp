@@ -355,22 +355,20 @@ namespace Wunk8
 				Memory.Data[Registers.I + 2] = *Arg % 10;
 				break;
 			}
-			case 0x55: // LD : Stores all General Registers V at Index
+			case 0x55: // LD : Stores all General Registers V0 to VX at Index
 			{
 				std::copy_n(
 					std::begin(Registers.V),
-					sizeof(Registers.V),
+					(Opcode >> 8) & 0xF,
 					&Memory.Data[Registers.I]);
-				//memcpy(&Memory.Data[Registers.I], Registers.V, sizeof(Registers.V));
 				break;
 			}
-			case 0x65: // LD : Read all General Registers V from Index
+			case 0x65: // LD : Read all General Registers V0 to VX from Index
 			{
 				std::copy_n(
 					&Memory.Data[Registers.I],
-					sizeof(Registers.V),
+					(Opcode >> 8) & 0xF,
 					std::begin(Registers.V));
-				//memcpy(Registers.V, &Memory.Data[Registers.I], sizeof(Registers.V));
 				break;
 			}
 			default:
