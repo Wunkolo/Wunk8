@@ -24,23 +24,35 @@ void clrscreen()
 std::string RenderScreen(const uint8_t* Buffer,
 	size_t Width = 64, size_t Height = 32);
 
-int main()
+int main(size_t argc, char *argv[])
 {
-	Wunk8::Chip8 Processor;
-	Processor.LoadGame("PONG");
-	size_t Frame = 0;
-	//std::cin.get();
-
-	while( Processor.Tick(std::chrono::milliseconds(16)) )
+	if( argc != 2 )
 	{
-		//printf("\t\t\tTick! (%u)\n", Tick++);
-		if( Processor.QueryFrame() )
+		std::cout << "Usage: " << argv[0] << ' ' << "(Chip8 ROM file)" << std::endl;
+		return 0;
+	};
+
+	Wunk8::Chip8 Console;
+
+	std::cout << "Loading chip8 rom: " << argv[1] << "..." << std::endl;
+
+	if( !Console.LoadGame(std::string(argv[1])) )
+	{
+		std::cout << "Failed!" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	std::cout << "Done!" << std::endl;
+
+	size_t Frame = 0;
+	while( Console.Tick(std::chrono::milliseconds(16)) )
+	{
+		if( Console.QueryFrame() )
 		{
 			Frame++;
 			// Quickly generate an image sequence to string together later
-			stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 1, Processor.GetScreen(), 64);
+			stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 1, Console.GetScreen(), 64);
 			//clrscreen();
-			//std::cout << RenderScreen(Processor.GetScreen(), 64, 32);
+			//std::cout << RenderScreen(Console.GetScreen(), 64, 32);
 			std::this_thread::sleep_for(std::chrono::milliseconds(16));
 		}
 	}
@@ -66,6 +78,7 @@ std::string RenderScreen(const uint8_t* Buffer,
 	return Result;
 }
 
+// Binary image
 //std::string RenderScreen(const uint8_t* Buffer,
 //	size_t Width, size_t Height)
 //{
