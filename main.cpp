@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Wunk8.hpp"
+#define _GLIBCXX_USE_NANOSLEEP
 #include <thread>
 
 #if defined _WIN32 || defined _WIN64
@@ -34,7 +35,7 @@ void clrscreen()
 std::string RenderScreen(const uint8_t* Buffer,
 	size_t Width = 64, size_t Height = 32);
 
-int main(size_t argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	if( argc != 2 )
 	{
