@@ -3,37 +3,15 @@
 #define _GLIBCXX_USE_NANOSLEEP
 #include <thread>
 
-#if defined _WIN32 || defined _WIN64
-#include <windows.h>
-void clrscreen()
-{
-	DWORD n;							/* Number of characters written */
-	COORD coord = { 0 };				/* Top left screen position */
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-	GetConsoleScreenBufferInfo(h, &csbi);
-	DWORD size = csbi.dwSize.X * csbi.dwSize.Y;
-	FillConsoleOutputCharacter(h, TEXT(' '), size, coord, &n);
-	GetConsoleScreenBufferInfo(h, &csbi);
-	FillConsoleOutputAttribute(h, csbi.wAttributes, size, coord, &n);
-	SetConsoleCursorPosition(h, coord);
-}
-#elif defined __unix__
-void clrscreen()
-{
-	puts("\033[2J\033[1;1H");
-}
-#else
-void clrscreen()
-{
-}
-#endif
-
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-std::string RenderScreen(const uint8_t* Buffer,
-	size_t Width = 64, size_t Height = 32);
+#define SG_DEFINE
+#define SG_W32
+#include "sg.hpp"
+
+#define WIDTH 64 * 8
+#define HEIGHT 32 * 8
 
 int main(int argc, char *argv[])
 {
@@ -54,59 +32,204 @@ int main(int argc, char *argv[])
 	}
 	std::cout << "Done!" << std::endl;
 
+	sg_init("Wunk8", WIDTH, HEIGHT);
+
+	uint32_t* Screen = new uint32_t[64 * 32]();
+
 	size_t Frame = 0;
-	while( Console.Tick(std::chrono::milliseconds(16)) )
+	while( Console.Tick(std::chrono::milliseconds(1)) )
 	{
 		if( Console.QueryFrame() )
 		{
 			Frame++;
-			// Quickly generate an image sequence to string together later
-			//stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 1, Console.GetScreen(), 64);
-			clrscreen();
-			std::cout << RenderScreen(Console.GetScreen(), 64, 32);
-			std::this_thread::sleep_for(std::chrono::milliseconds(16));
+			for( size_t i = 0; i < (64 * 32); i++ )
+			{
+				Screen[i] = Console.GetScreen()[i] ? 0xFFFFFFFF : 0xFF000000;
+			}
+			stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 4, Screen, 64 * 4);
+			sg_paint(Screen, 64, 32);
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+		sg_event Event;
+		if( sg_poll(&Event) )
+		{
+			if( Event.type == SG_ev_keydown )
+			{
+				switch( Event.key )
+				{
+				case '1':
+				{
+					Console.KeyDown(1);
+					break;
+				}
+				case '2':
+				{
+					Console.KeyDown(1 << 1);
+					break;
+				}
+				case '3':
+				{
+					Console.KeyDown(1 << 2);
+					break;
+				}
+				case '4':
+				{
+					Console.KeyDown(1 << 3);
+					break;
+				}
+				case 'q':
+				{
+					Console.KeyDown(1 << 4);
+					break;
+				}
+				case 'w':
+				{
+					Console.KeyDown(1 << 5);
+					break;
+				}
+				case 'e':
+				{
+					Console.KeyDown(1 << 6);
+					break;
+				}
+				case 'r':
+				{
+					Console.KeyDown(1 << 7);
+					break;
+				}
+				case 'a':
+				{
+					Console.KeyDown(1 << 8);
+					break;
+				}
+				case 's':
+				{
+					Console.KeyDown(1 << 9);
+					break;
+				}
+				case 'd':
+				{
+					Console.KeyDown(1 << 10);
+					break;
+				}
+				case 'f':
+				{
+					Console.KeyDown(1 << 11);
+					break;
+				}
+				case 'z':
+				{
+					Console.KeyDown(1 << 12);
+					break;
+				}
+				case 'x':
+				{
+					Console.KeyDown(1 << 13);
+					break;
+				}
+				case 'c':
+				{
+					Console.KeyDown(1 << 14);
+					break;
+				}
+				case 'v':
+				{
+					Console.KeyDown(1 << 15);
+					break;
+				}
+				}
+			}
+			if( Event.type == SG_ev_keyup )
+			{
+				switch( Event.key )
+				{
+				case '1':
+				{
+					Console.KeyUp(1);
+					break;
+				}
+				case '2':
+				{
+					Console.KeyUp(1 << 1);
+					break;
+				}
+				case '3':
+				{
+					Console.KeyUp(1 << 2);
+					break;
+				}
+				case '4':
+				{
+					Console.KeyUp(1 << 3);
+					break;
+				}
+				case 'q':
+				{
+					Console.KeyUp(1 << 4);
+					break;
+				}
+				case 'w':
+				{
+					Console.KeyUp(1 << 5);
+					break;
+				}
+				case 'e':
+				{
+					Console.KeyUp(1 << 6);
+					break;
+				}
+				case 'r':
+				{
+					Console.KeyUp(1 << 7);
+					break;
+				}
+				case 'a':
+				{
+					Console.KeyUp(1 << 8);
+					break;
+				}
+				case 's':
+				{
+					Console.KeyUp(1 << 9);
+					break;
+				}
+				case 'd':
+				{
+					Console.KeyUp(1 << 10);
+					break;
+				}
+				case 'f':
+				{
+					Console.KeyUp(1 << 11);
+					break;
+				}
+				case 'z':
+				{
+					Console.KeyUp(1 << 12);
+					break;
+				}
+				case 'x':
+				{
+					Console.KeyUp(1 << 13);
+					break;
+				}
+				case 'c':
+				{
+					Console.KeyUp(1 << 14);
+					break;
+				}
+				case 'v':
+				{
+					Console.KeyUp(1 << 15);
+					break;
+				}
+				}
+			}
 		}
 	}
+
+	delete[] Screen;
+	sg_exit();
 
 	return 0;
 }
-
-std::string RenderScreen(const uint8_t* Buffer,
-	size_t Width, size_t Height)
-{
-	std::string Result;
-	size_t ColumnCount = 0;
-	Result += '\xDA' + std::string(Width, '\xC4') + '\xBF' + '\n' + '\xB3';
-	for( size_t i = 0; i < (Width*Height); i++ )
-	{
-		Result += Buffer[i] ? '\xDB' : '\x20';
-		if( (i + 1) % Width == 0 )
-		{
-			Result += "\xB3\n\xB3";
-		}
-	}
-	Result += "\b""\xC0" + std::string(Width, '\xC4') + '\xD9' + '\n';
-	return Result;
-}
-
-// Binary image
-//std::string RenderScreen(const uint8_t* Buffer,
-//	size_t Width, size_t Height)
-//{
-//	std::string Result;
-//	size_t ColumnCount = 0;
-//	Result += '\xDA' + std::string(Width, '\xC4') + '\xBF' + '\n' + '\xB3';
-//	for( size_t i = 0; i < (Width*Height) / 8; i++ )
-//	{
-//		for( size_t j = 0; j < 8; j++ )
-//		{
-//			Result += (Buffer[i] & (0x80 >> j)) ? '\xDB' : '\x20';
-//			if( (ColumnCount++ + 1) % Width == 0 )
-//			{
-//				Result += "\xB3\n\xB3";
-//			}
-//		}
-//	}
-//	Result += "\b""\xC0" + std::string(Width, '\xC4') + '\xD9' + '\n';
-//	return Result;
-//}
