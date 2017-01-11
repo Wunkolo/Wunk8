@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 			{
 				Screen[i] = Console.GetScreen()[i] ? 0xFFFFFFFF : 0xFF000000;
 			}
-			stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 4, Screen, 64 * 4);
+			//stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 4, Screen, 64 * 4);
 			sg_paint(Screen, 64, 32);
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
