@@ -16,13 +16,13 @@ public:
 	void Reset();
 
 	// Loads a Chip8 Program from a file
-	bool LoadGame(const std::string& FileName);
+	bool LoadGame(const std::string &xFileName);
 
 	// Loads a Chip8 Program from memory
-	bool LoadGame(const void* Data, size_t Length);
+	bool LoadGame(const void *Data, size_t Length);
 
 	// Simulates complete cycles for the designated amount of time
-	bool Tick(const std::chrono::duration<double, std::chrono::seconds::period> DeltaTime);
+	bool Tick(const std::chrono::milliseconds DeltaTime);
 
 	// Input
 	inline void KeyDown(uint16_t Key)
@@ -129,7 +129,7 @@ private:
 	// --------------------------
 	struct
 	{
-		uint8_t Screen[64 * 32];
+		uint8_t Screen[Width * Height];
 	} Display;
 
 	// Timers:

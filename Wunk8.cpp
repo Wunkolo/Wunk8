@@ -7,7 +7,8 @@ namespace Wunk8
 {
 Chip8::Chip8(uint32_t Seed)
 	:
-	Seed(Seed), RandEng(Seed)
+	Seed(Seed),
+	RandEng(Seed)
 {
 	Reset();
 }
@@ -22,7 +23,7 @@ void Chip8::Reset()
 	std::fill(std::begin(Memory.Data), std::end(Memory.Data), 0);
 
 	// Load FontSet into memory
-	static const uint8_t Chip8Font[] =
+	static constexpr uint8_t Chip8Font[] =
 	{
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 		0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -63,11 +64,15 @@ void Chip8::Reset()
 	Keyboard.KeyStates = 0;
 }
 
-bool Chip8::LoadGame(const std::string & FileName)
+bool Chip8::LoadGame(const std::string &FileName)
 {
 	if( !FileName.empty() )
 	{
-		std::ifstream fIn(FileName, std::ios::binary | std::ios::ate);
+		std::ifstream fIn(
+			FileName,
+			std::ios::binary | std::ios::ate
+		);
+
 		if( fIn.good() )
 		{
 			size_t Length = static_cast<size_t>(fIn.tellg());
@@ -75,7 +80,8 @@ bool Chip8::LoadGame(const std::string & FileName)
 			fIn.seekg(0, std::ios::beg);
 			fIn.read(
 				reinterpret_cast<char*>(Memory.Data) + 0x200,
-				Length);
+				Length
+			);
 			fIn.close();
 			return true;
 		}
@@ -83,19 +89,20 @@ bool Chip8::LoadGame(const std::string & FileName)
 	return false;
 }
 
-bool Chip8::LoadGame(const void* Data, size_t Length)
+bool Chip8::LoadGame(const void *Data, size_t Length)
 {
 	if( Data )
 	{
 		std::copy_n(
 			static_cast<const uint8_t*>(Data),
 			Length,
-			std::begin(Memory.Data) + 0x200);
+			std::begin(Memory.Data) + 0x200
+		);
 	}
 	return true;
 }
 
-bool Chip8::Tick(const std::chrono::duration<double, std::chrono::seconds::period> DeltaTime)
+bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 {
 	uint16_t Opcode = Memory.Data[Registers.PC++] << 8;
 	Opcode |= Memory.Data[Registers.PC++];
@@ -110,7 +117,8 @@ bool Chip8::Tick(const std::chrono::duration<double, std::chrono::seconds::perio
 			std::fill_n(
 				std::begin(Display.Screen),
 				sizeof(Display.Screen),
-				0);
+				0
+			);
 			break;
 		}
 		case 0xEE: // RET : Return from Subroutine
@@ -254,12 +262,12 @@ bool Chip8::Tick(const std::chrono::duration<double, std::chrono::seconds::perio
 			{
 				if( Pixel & (0x80 >> X) )
 				{
-					if( Display.Screen[X + SX + ((Y + SY) * Wunk8::Chip8::Width)] )
+					if( Display.Screen[X + SX + ((Y + SY) * Width)] )
 					{
 						// Collision
 						Registers.V[0xF] = 1;
 					}
-					Display.Screen[X + SX + ((Y + SY) * Wunk8::Chip8::Width)] ^= 1;
+					Display.Screen[X + SX + ((Y + SY) * Width)] ^= 1;
 				}
 			}
 		}
@@ -287,7 +295,7 @@ bool Chip8::Tick(const std::chrono::duration<double, std::chrono::seconds::perio
 	}
 	case 0xF: //
 	{
-		uint8_t * Arg = &(Registers.V[(Opcode >> 8) & 0xF]);
+		uint8_t *Arg = &(Registers.V[(Opcode >> 8) & 0xF]);
 		switch( Opcode & 0xFF )
 		{
 		case 0x07: // LD : Load Delay Timer
@@ -341,7 +349,8 @@ bool Chip8::Tick(const std::chrono::duration<double, std::chrono::seconds::perio
 			std::copy_n(
 				&(Memory.Data[Registers.I]),
 				((Opcode >> 8) & 0xF) + 1,
-				std::begin(Registers.V));
+				std::begin(Registers.V)
+			);
 			break;
 		}
 		default:

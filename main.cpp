@@ -1,7 +1,9 @@
 #include <iostream>
-#include "Wunk8.hpp"
+#include <memory>
 #define _GLIBCXX_USE_NANOSLEEP
 #include <thread>
+
+#include "Wunk8.hpp"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -29,9 +31,9 @@ int main(int argc, char *argv[])
 	}
 	std::cout << "Done!" << std::endl;
 
-	sg_init("Wunk8", Wunk8::Chip8::Width, Wunk8::Chip8::Height);
+	sg_init("Wunk8", Wunk8::Chip8::Width * 8, Wunk8::Chip8::Height * 8);
 
-	uint32_t* Screen = new uint32_t[Wunk8::Chip8::Width * Wunk8::Chip8::Height]();
+	std::unique_ptr<uint32_t[]> Screen(new uint32_t[Wunk8::Chip8::Width * Wunk8::Chip8::Height]);
 
 	size_t Frame = 0;
 	while( Console.Tick(std::chrono::milliseconds(1)) )
@@ -45,7 +47,7 @@ int main(int argc, char *argv[])
 			}
 			//stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 4, Screen, 64 * 4);
 			sg_paint(
-				Screen,
+				Screen.get(),
 				Wunk8::Chip8::Width,
 				Wunk8::Chip8::Height
 			);
@@ -229,7 +231,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	delete[] Screen;
+	Screen.reset();
 	sg_exit();
 
 	return 0;
