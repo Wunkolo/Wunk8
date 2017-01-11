@@ -10,9 +10,6 @@
 #define SG_W32
 #include "sg.hpp"
 
-#define WIDTH 64 * 8
-#define HEIGHT 32 * 8
-
 int main(int argc, char *argv[])
 {
 	if( argc != 2 )
@@ -32,9 +29,9 @@ int main(int argc, char *argv[])
 	}
 	std::cout << "Done!" << std::endl;
 
-	sg_init("Wunk8", WIDTH, HEIGHT);
+	sg_init("Wunk8", Wunk8::Chip8::Width, Wunk8::Chip8::Height);
 
-	uint32_t* Screen = new uint32_t[64 * 32]();
+	uint32_t* Screen = new uint32_t[Wunk8::Chip8::Width * Wunk8::Chip8::Height]();
 
 	size_t Frame = 0;
 	while( Console.Tick(std::chrono::milliseconds(1)) )
@@ -42,13 +39,17 @@ int main(int argc, char *argv[])
 		if( Console.QueryFrame() )
 		{
 			Frame++;
-			for( size_t i = 0; i < (64 * 32); i++ )
+			for( size_t i = 0; i < (Wunk8::Chip8::Width * Wunk8::Chip8::Height); i++ )
 			{
 				Screen[i] = Console.GetScreen()[i] ? 0xFFFFFFFF : 0xFF000000;
 			}
 			//stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 4, Screen, 64 * 4);
-			sg_paint(Screen, 64, 32);
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			sg_paint(
+				Screen,
+				Wunk8::Chip8::Width,
+				Wunk8::Chip8::Height
+			);
+			std::this_thread::sleep_for(std::chrono::milliseconds(16));
 		}
 		sg_event Event;
 		if( sg_poll(&Event) )

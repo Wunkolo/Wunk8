@@ -40,6 +40,9 @@ public:
 		return &Display.Screen[0];
 	};
 
+	static constexpr size_t Width = 64;
+	static constexpr size_t Height = 32;
+
 	bool QueryFrame()
 	{
 		if( DeltaFrame )

@@ -254,12 +254,12 @@ bool Chip8::Tick(const std::chrono::duration<double, std::chrono::seconds::perio
 			{
 				if( Pixel & (0x80 >> X) )
 				{
-					if( Display.Screen[X + SX + ((Y + SY) * 64)] )
+					if( Display.Screen[X + SX + ((Y + SY) * Wunk8::Chip8::Width)] )
 					{
 						// Collision
 						Registers.V[0xF] = 1;
 					}
-					Display.Screen[X + SX + ((Y + SY) * 64)] ^= 1;
+					Display.Screen[X + SX + ((Y + SY) * Wunk8::Chip8::Width)] ^= 1;
 				}
 			}
 		}
