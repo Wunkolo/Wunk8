@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	std::unique_ptr<uint32_t[]> Screen(new uint32_t[Wunk8::Chip8::Width * Wunk8::Chip8::Height]);
 
 	size_t Frame = 0;
-	while( Console.Tick(std::chrono::milliseconds(1)) )
+	while( Console.Tick(std::chrono::milliseconds(16)) )
 	{
 		if( Console.QueryFrame() )
 		{

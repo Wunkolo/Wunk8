@@ -300,7 +300,7 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 		{
 		case 0x07: // LD : Load Delay Timer
 		{
-			*Arg = Timer.Delay;
+			*Arg = (Timer.Delay / TimerRate);
 			break;
 		}
 		case 0x0A: // LD : Load upon Keypress
@@ -311,12 +311,12 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 		}
 		case 0x15: // LD : Set Delay Timer
 		{
-			Timer.Delay = *Arg;
+			Timer.Delay = TimerRate * (*Arg);
 			break;
 		}
 		case 0x18: // LD: Set Sound Timer
 		{
-			Timer.Sound = *Arg;
+			Timer.Sound = TimerRate * (*Arg);
 			break;
 		}
 		case 0x1E: // ADD : Increment Index
@@ -363,11 +363,11 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	// Update timers
 	if( Timer.Delay )
 	{
-		Timer.Delay--;
+		Timer.Delay -= std::min<size_t>(DeltaTime.count(), Timer.Delay);
 	}
 	if( Timer.Sound )
 	{
-		Timer.Sound--;
+		Timer.Sound -= std::min<size_t>(DeltaTime.count(), Timer.Sound);
 		Timer.Sound || putchar(0x7);// bell character
 	}
 	return true;

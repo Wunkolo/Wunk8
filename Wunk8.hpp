@@ -145,5 +145,8 @@ private:
 		// when 0 is reached.
 		uint8_t Sound;
 	} Timer;
+
+	// 16 ms per tick
+	static constexpr size_t TimerRate = 16;
 };
 }
