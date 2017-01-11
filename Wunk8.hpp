@@ -16,7 +16,7 @@ public:
 	void Reset();
 
 	// Loads a Chip8 Program from a file
-	bool LoadGame(const std::string &xFileName);
+	bool LoadGame(const std::string &FileName);
 
 	// Loads a Chip8 Program from memory
 	bool LoadGame(const void *Data, size_t Length);
