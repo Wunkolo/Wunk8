@@ -74,7 +74,7 @@ bool Chip8::LoadGame(const std::string & FileName)
 			Length = std::min(sizeof(Memory.Data) - 0x200, Length);
 			fIn.seekg(0, std::ios::beg);
 			fIn.read(
-				((char*)Memory.Data) + 0x200,
+				reinterpret_cast<char*>(Memory.Data) + 0x200,
 				Length);
 			fIn.close();
 			return true;
