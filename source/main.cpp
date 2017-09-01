@@ -1,6 +1,5 @@
 #include <iostream>
 #include <memory>
-#define _GLIBCXX_USE_NANOSLEEP
 #include <thread>
 
 #include "Wunk8.hpp"
@@ -8,9 +7,11 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+#if defined(_WIN32)
 #define SG_DEFINE
 #define SG_W32
 #include "sg.hpp"
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -27,11 +28,13 @@ int main(int argc, char *argv[])
 	if( !Console.LoadGame(std::string(argv[1])) )
 	{
 		std::cout << "Failed!" << std::endl;
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
 	std::cout << "Done!" << std::endl;
 
+#if defined(_WIN32)
 	sg_init("Wunk8", Wunk8::Chip8::Width * 8, Wunk8::Chip8::Height * 8);
+#endif
 
 	std::unique_ptr<uint32_t[]> Screen(new uint32_t[Wunk8::Chip8::Width * Wunk8::Chip8::Height]);
 
@@ -45,14 +48,17 @@ int main(int argc, char *argv[])
 			{
 				Screen[i] = Console.GetScreen()[i] ? 0xFFFFFFFF : 0xFF000000;
 			}
-			//stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 4, Screen, 64 * 4);
+			stbi_write_png((std::to_string(Frame) + ".png").c_str(), 64, 32, 4, Screen.get(), 64 * 4);
+#if defined(_WIN32)
 			sg_paint(
 				Screen.get(),
 				Wunk8::Chip8::Width,
 				Wunk8::Chip8::Height
 			);
+#endif
 			std::this_thread::sleep_for(std::chrono::milliseconds(16));
 		}
+#if defined(_WIN32)
 		sg_event Event;
 		if( sg_poll(&Event) )
 		{
@@ -229,10 +235,13 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
+#endif
 	}
 
 	Screen.reset();
+#if defined(_WIN32)
 	sg_exit();
+#endif
 
-	return 0;
+	return EXIT_SUCCESS;
 }
