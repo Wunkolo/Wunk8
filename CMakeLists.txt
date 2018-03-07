@@ -12,9 +12,8 @@ set( CMAKE_VERBOSE_MAKEFILE ON )
 
 ### Optimizations
 if( MSVC )
-	add_compile_options( /Oxs )
 	add_compile_options( /arch:AVX2 )
-	add_compile_options( /W3 )
+	add_compile_options( /Wall )
 elseif( CMAKE_COMPILER_IS_GNUCXX )
 	add_compile_options( -m64 )
 	add_compile_options( -march=native )
@@ -23,12 +22,15 @@ elseif( CMAKE_COMPILER_IS_GNUCXX )
 	add_compile_options( -Wextra )
 endif()
 
-include_directories( include )
 
-file( GLOB_RECURSE SOURCE_FILES source/*.cpp )
-
+### Targets
 add_executable(
-	wunk8
-	${SOURCE_FILES}
+	Wunk8
+	source/main.cpp
+	source/Wunk8.cpp
 )
-
+target_include_directories(
+	Wunk8
+	PRIVATE
+	include
+)
