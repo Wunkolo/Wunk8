@@ -6,8 +6,7 @@
 namespace Wunk8
 {
 Chip8::Chip8(uint32_t Seed)
-	:
-	Seed(Seed),
+	: Seed(Seed),
 	RandEng(Seed)
 {
 	Reset();
@@ -40,7 +39,7 @@ void Chip8::Reset()
 		0xF0, 0x80, 0x80, 0x80, 0xF0, // C
 		0xE0, 0x90, 0x90, 0x90, 0xE0, // D
 		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-		0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+		0xF0, 0x80, 0xF0, 0x80, 0x80 // F
 	};
 	std::copy_n(
 		std::begin(Chip8Font),
@@ -49,7 +48,7 @@ void Chip8::Reset()
 
 	// Registers
 	// Program counter starts at 0x200
-	Registers = { { 0 }, 0, 0x200, 0 };
+	Registers = {{0}, 0, 0x200, 0};
 
 	// Stack
 	std::fill(std::begin(Stack), std::end(Stack), 0);
@@ -64,7 +63,7 @@ void Chip8::Reset()
 	Keyboard.KeyStates = 0;
 }
 
-bool Chip8::LoadGame(const std::string &FileName)
+bool Chip8::LoadGame(const std::string& FileName)
 {
 	if( !FileName.empty() )
 	{
@@ -89,7 +88,7 @@ bool Chip8::LoadGame(const std::string &FileName)
 	return false;
 }
 
-bool Chip8::LoadGame(const void *Data, size_t Length)
+bool Chip8::LoadGame(const void* Data, size_t Length)
 {
 	if( Data )
 	{
@@ -197,7 +196,7 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 		{
 			Registers.V[0xF] = (
 				(static_cast<size_t>(*Dest) + static_cast<size_t>(*Operand)) > 0xFF
-				);
+			);
 			*Dest += *Operand;
 			break;
 		}
@@ -295,7 +294,7 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	}
 	case 0xF: //
 	{
-		uint8_t *Arg = &(Registers.V[(Opcode >> 8) & 0xF]);
+		uint8_t* Arg = &(Registers.V[(Opcode >> 8) & 0xF]);
 		switch( Opcode & 0xFF )
 		{
 		case 0x07: // LD : Load Delay Timer
