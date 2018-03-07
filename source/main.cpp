@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <thread>
+#include <string>
 
 #include "Wunk8.hpp"
 
@@ -36,15 +37,15 @@ int main(int argc, char* argv[])
 	sg_init("Wunk8", Wunk8::Chip8::Width * 8, Wunk8::Chip8::Height * 8);
 #endif
 
-	std::unique_ptr<uint32_t[]> Screen(new uint32_t[Wunk8::Chip8::Width * Wunk8::Chip8::Height]);
+	std::unique_ptr<std::uint32_t[]> Screen(new std::uint32_t[Wunk8::Chip8::Width * Wunk8::Chip8::Height]);
 
-	size_t Frame = 0;
+	std::size_t Frame = 0;
 	while( Console.Tick(std::chrono::milliseconds(16)) )
 	{
 		if( Console.QueryFrame() )
 		{
 			Frame++;
-			for( size_t i = 0; i < (Wunk8::Chip8::Width * Wunk8::Chip8::Height); i++ )
+			for( std::size_t i = 0; i < (Wunk8::Chip8::Width * Wunk8::Chip8::Height); i++ )
 			{
 				Screen[i] = Console.GetScreen()[i] ? 0xFFFFFFFF : 0xFF000000;
 			}

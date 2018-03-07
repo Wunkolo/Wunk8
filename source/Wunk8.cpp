@@ -5,7 +5,7 @@
 
 namespace Wunk8
 {
-Chip8::Chip8(uint32_t Seed)
+Chip8::Chip8(std::uint32_t Seed)
 	: Seed(Seed),
 	RandEng(Seed)
 {
@@ -22,7 +22,7 @@ void Chip8::Reset()
 	std::fill(std::begin(Memory.Data), std::end(Memory.Data), 0);
 
 	// Load FontSet into memory
-	static constexpr uint8_t Chip8Font[] =
+	static constexpr std::uint8_t Chip8Font[] =
 	{
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 		0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -39,12 +39,13 @@ void Chip8::Reset()
 		0xF0, 0x80, 0x80, 0x80, 0xF0, // C
 		0xE0, 0x90, 0x90, 0x90, 0xE0, // D
 		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-		0xF0, 0x80, 0xF0, 0x80, 0x80 // F
+		0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 	};
 	std::copy_n(
 		std::begin(Chip8Font),
 		sizeof(Chip8Font),
-		std::begin(Memory.Data));
+		std::begin(Memory.Data)
+	);
 
 	// Registers
 	// Program counter starts at 0x200
@@ -74,7 +75,7 @@ bool Chip8::LoadGame(const std::string& FileName)
 
 		if( fIn.good() )
 		{
-			size_t Length = static_cast<size_t>(fIn.tellg());
+			std::size_t Length = static_cast<std::size_t>(fIn.tellg());
 			Length = std::min(sizeof(Memory.Data) - 0x200, Length);
 			fIn.seekg(0, std::ios::beg);
 			fIn.read(
@@ -88,12 +89,12 @@ bool Chip8::LoadGame(const std::string& FileName)
 	return false;
 }
 
-bool Chip8::LoadGame(const void* Data, size_t Length)
+bool Chip8::LoadGame(const void* Data, std::size_t Length)
 {
 	if( Data )
 	{
 		std::copy_n(
-			static_cast<const uint8_t*>(Data),
+			static_cast<const std::uint8_t*>(Data),
 			Length,
 			std::begin(Memory.Data) + 0x200
 		);
@@ -103,7 +104,7 @@ bool Chip8::LoadGame(const void* Data, size_t Length)
 
 bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 {
-	uint16_t Opcode = Memory.Data[Registers.PC++] << 8;
+	std::uint16_t Opcode = Memory.Data[Registers.PC++] << 8;
 	Opcode |= Memory.Data[Registers.PC++];
 	switch( Opcode >> 12 )
 	{
@@ -167,9 +168,8 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	}
 	case 0x8: // Register operators
 	{
-		uint8_t *Dest, *Operand;
-		Dest = &(Registers.V[(Opcode >> 8) & 0xF]);
-		Operand = &(Registers.V[(Opcode >> 4) & 0xF]);
+		std::uint8_t* Dest = &(Registers.V[(Opcode >> 8) & 0xF]);
+		std::uint8_t* Operand = &(Registers.V[(Opcode >> 4) & 0xF]);
 		switch( Opcode & 0xF )
 		{
 		case 0: // LD : Load register
@@ -195,14 +195,14 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 		case 4: // ADD /CARRY
 		{
 			Registers.V[0xF] = (
-				(static_cast<size_t>(*Dest) + static_cast<size_t>(*Operand)) > 0xFF
+				(static_cast<std::size_t>(*Dest) + static_cast<std::size_t>(*Operand)) > 0xFF
 			);
 			*Dest += *Operand;
 			break;
 		}
 		case 5: // SUB /BORROW
 		{
-			Registers.V[0xF] = (static_cast<size_t>(*Dest) > static_cast<size_t>(*Operand));
+			Registers.V[0xF] = (static_cast<std::size_t>(*Dest) > static_cast<std::size_t>(*Operand));
 			*Dest -= *Operand;
 			break;
 		}
@@ -214,7 +214,7 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 		}
 		case 7: // SUBN
 		{
-			Registers.V[0xF] = (static_cast<size_t>(*Operand) > static_cast<size_t>(*Dest));
+			Registers.V[0xF] = (static_cast<std::size_t>(*Operand) > static_cast<std::size_t>(*Dest));
 			*Operand -= *Dest;
 			break;
 		}
@@ -244,20 +244,20 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	}
 	case 0xC: // Random number generator
 	{
-		Registers.V[(Opcode >> 8) & 0xF] = std::uniform_int_distribution<size_t>(0, 0xFF)(RandEng);
+		Registers.V[(Opcode >> 8) & 0xF] = std::uniform_int_distribution<std::size_t>(0, 0xFF)(RandEng);
 		Registers.V[(Opcode >> 8) & 0xF] &= (Opcode & 0xFF);
 		break;
 	}
 	case 0xD: // Draw 8xN sprite at (x,y) with collision flag
 	{
-		uint8_t SX = Registers.V[(Opcode >> 8) & 0xF];
-		uint8_t SY = Registers.V[(Opcode >> 4) & 0xF];
-		uint8_t Height = Opcode & 0xF;
+		std::uint8_t SX = Registers.V[(Opcode >> 8) & 0xF];
+		std::uint8_t SY = Registers.V[(Opcode >> 4) & 0xF];
+		std::uint8_t Height = Opcode & 0xF;
 		Registers.V[0xF] = 0;
-		for( size_t Y = 0; Y < Height; Y++ )
+		for( std::size_t Y = 0; Y < Height; Y++ )
 		{
-			uint8_t Pixel = Memory.Data[Registers.I + Y];
-			for( size_t X = 0; X < 8; X++ )
+			std::uint8_t Pixel = Memory.Data[Registers.I + Y];
+			for( std::size_t X = 0; X < 8; X++ )
 			{
 				if( Pixel & (0x80 >> X) )
 				{
@@ -276,7 +276,7 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	}
 	case 0xE: // Key press conditionals
 	{
-		uint8_t Key = (Opcode & 0xF00) >> 8;
+		const std::uint8_t Key = (Opcode & 0xF00) >> 8;
 		switch( Opcode & 0xFF )
 		{
 		case 0x9E: // SKP : Skip if key is pressed
@@ -294,7 +294,7 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	}
 	case 0xF: //
 	{
-		uint8_t* Arg = &(Registers.V[(Opcode >> 8) & 0xF]);
+		std::uint8_t* Arg = &(Registers.V[(Opcode >> 8) & 0xF]);
 		switch( Opcode & 0xFF )
 		{
 		case 0x07: // LD : Load Delay Timer
@@ -362,11 +362,11 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	// Update timers
 	if( Timer.Delay )
 	{
-		Timer.Delay -= std::min<size_t>(DeltaTime.count(), Timer.Delay);
+		Timer.Delay -= std::min<std::size_t>(DeltaTime.count(), Timer.Delay);
 	}
 	if( Timer.Sound )
 	{
-		Timer.Sound -= std::min<size_t>(DeltaTime.count(), Timer.Sound);
+		Timer.Sound -= std::min<std::size_t>(DeltaTime.count(), Timer.Sound);
 		Timer.Sound || putchar(0x7);// bell character
 	}
 	return true;

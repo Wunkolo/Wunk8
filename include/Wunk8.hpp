@@ -1,6 +1,5 @@
 #pragma once
-#include <string>
-#include <stdint.h>
+#include <cstdint>
 #include <chrono>
 #include <random>
 
@@ -9,7 +8,7 @@ namespace Wunk8
 class Chip8
 {
 public:
-	explicit Chip8(uint32_t Seed = 0);
+	explicit Chip8(std::uint32_t Seed = 0);
 	~Chip8();
 
 	// Sets a default Chip8 Processor state
@@ -19,30 +18,30 @@ public:
 	bool LoadGame(const std::string& FileName);
 
 	// Loads a Chip8 Program from memory
-	bool LoadGame(const void* Data, size_t Length);
+	bool LoadGame(const void* Data, std::size_t Length);
 
 	// Simulates complete cycles for the designated amount of time
 	bool Tick(const std::chrono::milliseconds DeltaTime);
 
 	// Input
-	void KeyDown(uint16_t Key)
+	void KeyDown(std::uint16_t Key)
 	{
 		Keyboard.KeyStates |= Key;
 	}
 
-	void KeyUp(uint16_t Key)
+	void KeyUp(std::uint16_t Key)
 	{
 		Keyboard.KeyStates &= ~(Key);
 	}
 
 	// Gets Current Screen
-	const uint8_t* GetScreen() const
+	const std::uint8_t* GetScreen() const
 	{
 		return &Display.Screen[0];
 	};
 
-	static constexpr size_t Width = 64;
-	static constexpr size_t Height = 32;
+	static constexpr std::size_t Width = 64;
+	static constexpr std::size_t Height = 32;
 
 	bool QueryFrame()
 	{
@@ -56,7 +55,7 @@ public:
 
 private:
 	// Seed used for random number generation
-	uint32_t Seed;
+	std::uint32_t Seed;
 	std::mt19937 RandEng;
 
 	bool DeltaFrame;
@@ -68,7 +67,7 @@ private:
 	// 0x600						: Start of ETI 660 Chip-8 programs
 	struct
 	{
-		uint8_t Data[0xFFF];
+		std::uint8_t Data[0xFFF];
 	} Memory;
 
 	struct
@@ -77,25 +76,25 @@ private:
 		// 16 general purpose 8 bit registers
 		// Usually referred to as Vx.
 		// x being a hexidecimal digit 0-F.
-		uint8_t V[16];
+		std::uint8_t V[16];
 
 		// Index register:
 		// Typically used to store memory addresses
 		// Only lowest 12 bits are used(0x7FF mask)
-		uint16_t I;
+		std::uint16_t I;
 
 		// Program Counter:
 		// Stores the currently executing address
-		uint16_t PC;
+		std::uint16_t PC;
 
 		// Stack Pointer:
 		// Pointer to the top-most level of the stack.
-		uint16_t SP;
+		std::uint16_t SP;
 	} Registers;
 
 	// Stack:
 	// Stack has a maximum depth of 16 subroutines
-	uint16_t Stack[16];
+	std::uint16_t Stack[16];
 
 	// Keyboard
 	// Array of 16 binary flags for each key
@@ -106,7 +105,7 @@ private:
 	// A 0 B F
 	union
 	{
-		uint16_t KeyStates;
+		std::uint16_t KeyStates;
 
 		struct
 		{
@@ -131,7 +130,7 @@ private:
 	// --------------------------
 	struct
 	{
-		uint8_t Screen[Width * Height];
+		std::uint8_t Screen[Width * Height];
 	} Display;
 
 	// Timers:
@@ -141,14 +140,14 @@ private:
 	{
 		// Delay Timer decrements by 1 at a
 		// rate of 60 hz.
-		uint8_t Delay;
+		std::uint8_t Delay;
 		// Sound Timer decrements by 1 at a
 		// rate of 60 hz. A sound is to play
 		// when 0 is reached.
-		uint8_t Sound;
+		std::uint8_t Sound;
 	} Timer;
 
 	// 16 ms per tick
-	static constexpr size_t TimerRate = 16;
+	static constexpr std::size_t TimerRate = 16;
 };
 }
