@@ -9,7 +9,7 @@ namespace Wunk8
 class Chip8
 {
 public:
-	Chip8(uint32_t Seed = 0);
+	explicit Chip8(uint32_t Seed = 0);
 	~Chip8();
 
 	// Sets a default Chip8 Processor state
