@@ -148,6 +148,6 @@ private:
 	} Timer;
 
 	// 16 ms per tick
-	static constexpr std::size_t TimerRate = 16;
+	static constexpr std::chrono::milliseconds TimerRate = std::chrono::milliseconds(16);
 };
 }

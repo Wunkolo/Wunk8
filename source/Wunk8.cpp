@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <algorithm>
+#include <type_traits>
 
 namespace Wunk8
 {
@@ -22,7 +23,7 @@ void Chip8::Reset()
 	std::fill(std::begin(Memory.Data), std::end(Memory.Data), 0);
 
 	// Load FontSet into memory
-	static constexpr std::uint8_t Chip8Font[] =
+	static const std::uint8_t Chip8Font[] =
 	{
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 		0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -39,11 +40,11 @@ void Chip8::Reset()
 		0xF0, 0x80, 0x80, 0x80, 0xF0, // C
 		0xE0, 0x90, 0x90, 0x90, 0xE0, // D
 		0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-		0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+		0xF0, 0x80, 0xF0, 0x80, 0x80 // F
 	};
 	std::copy_n(
 		std::begin(Chip8Font),
-		sizeof(Chip8Font),
+		std::extent<decltype(Chip8Font)>::value,
 		std::begin(Memory.Data)
 	);
 
@@ -58,7 +59,8 @@ void Chip8::Reset()
 	std::fill(
 		std::begin(Display.Screen),
 		std::end(Display.Screen),
-		0);
+		0
+	);
 
 	Timer.Delay = Timer.Sound = 0;
 	Keyboard.KeyStates = 0;
@@ -68,21 +70,21 @@ bool Chip8::LoadGame(const std::string& FileName)
 {
 	if( !FileName.empty() )
 	{
-		std::ifstream fIn(
+		std::ifstream InFile(
 			FileName,
 			std::ios::binary | std::ios::ate
 		);
 
-		if( fIn.good() )
+		if( InFile.good() )
 		{
-			std::size_t Length = static_cast<std::size_t>(fIn.tellg());
-			Length = std::min(sizeof(Memory.Data) - 0x200, Length);
-			fIn.seekg(0, std::ios::beg);
-			fIn.read(
+			std::size_t Length = static_cast<std::size_t>(InFile.tellg());
+			Length = std::min(sizeof Memory.Data - 0x200, Length);
+			InFile.seekg(0, std::ios::beg);
+			InFile.read(
 				reinterpret_cast<char*>(Memory.Data) + 0x200,
 				Length
 			);
-			fIn.close();
+			InFile.close();
 			return true;
 		}
 	}
@@ -116,7 +118,7 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 		{
 			std::fill_n(
 				std::begin(Display.Screen),
-				sizeof(Display.Screen),
+				sizeof Display.Screen,
 				0
 			);
 			break;
@@ -143,33 +145,33 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	case 0x3: // SE : Skip if Equal immediate
 	{
 		// Keep things branchless
-		Registers.PC += 2 * (Registers.V[(Opcode >> 8) & 0xF] == (Opcode & 0xFF));
+		Registers.PC += 2 * (Registers.V[Opcode >> 8 & 0xF] == (Opcode & 0xFF));
 		break;
 	}
 	case 0x4: // SNE : Skip if not Equal immediate
 	{
-		Registers.PC += 2 * (Registers.V[(Opcode >> 8) & 0xF] != (Opcode & 0xFF));
+		Registers.PC += 2 * (Registers.V[Opcode >> 8 & 0xF] != (Opcode & 0xFF));
 		break;
 	}
 	case 0x5: // SE : Skip if registers equal
 	{
-		Registers.PC += 2 * (Registers.V[(Opcode >> 8) & 0xF] == Registers.V[(Opcode >> 4) & 0xF]);
+		Registers.PC += 2 * (Registers.V[Opcode >> 8 & 0xF] == Registers.V[Opcode >> 4 & 0xF]);
 		break;
 	}
 	case 0x6: // LD : Load immediate
 	{
-		Registers.V[(Opcode >> 8) & 0xF] = Opcode & 0xFF;
+		Registers.V[Opcode >> 8 & 0xF] = Opcode & 0xFF;
 		break;
 	}
 	case 0x7: // ADD: increment immediate
 	{
-		Registers.V[(Opcode >> 8) & 0xF] += Opcode & 0xFF;
+		Registers.V[Opcode >> 8 & 0xF] += Opcode & 0xFF;
 		break;
 	}
 	case 0x8: // Register operators
 	{
-		std::uint8_t* Dest = &(Registers.V[(Opcode >> 8) & 0xF]);
-		std::uint8_t* Operand = &(Registers.V[(Opcode >> 4) & 0xF]);
+		std::uint8_t* Dest = &Registers.V[Opcode >> 8 & 0xF];
+		std::uint8_t* Operand = &Registers.V[Opcode >> 4 & 0xF];
 		switch( Opcode & 0xF )
 		{
 		case 0: // LD : Load register
@@ -179,30 +181,28 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 		}
 		case 1: // OR
 		{
-			*Dest = *Dest | *Operand;
+			*Dest |= *Operand;
 			break;
 		}
 		case 2: // AND
 		{
-			*Dest = *Dest & *Operand;
+			*Dest &= *Operand;
 			break;
 		}
 		case 3: // XOR
 		{
-			*Dest = *Dest ^ *Operand;
+			*Dest ^= *Operand;
 			break;
 		}
 		case 4: // ADD /CARRY
 		{
-			Registers.V[0xF] = (
-				(static_cast<std::size_t>(*Dest) + static_cast<std::size_t>(*Operand)) > 0xFF
-			);
+			Registers.V[0xF] = static_cast<std::size_t>(*Dest) + static_cast<std::size_t>(*Operand) > 0xFF;
 			*Dest += *Operand;
 			break;
 		}
 		case 5: // SUB /BORROW
 		{
-			Registers.V[0xF] = (static_cast<std::size_t>(*Dest) > static_cast<std::size_t>(*Operand));
+			Registers.V[0xF] = static_cast<std::size_t>(*Dest) > static_cast<std::size_t>(*Operand);
 			*Dest -= *Operand;
 			break;
 		}
@@ -214,7 +214,7 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 		}
 		case 7: // SUBN
 		{
-			Registers.V[0xF] = (static_cast<std::size_t>(*Operand) > static_cast<std::size_t>(*Dest));
+			Registers.V[0xF] = static_cast<std::size_t>(*Operand) > static_cast<std::size_t>(*Dest);
 			*Operand -= *Dest;
 			break;
 		}
@@ -229,7 +229,7 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	}
 	case 0x9: // SNE : Skip if not Equal
 	{
-		Registers.PC += 2 * (Registers.V[(Opcode >> 8) & 0xF] != Registers.V[(Opcode >> 4) & 0xF]);
+		Registers.PC += 2 * (Registers.V[Opcode >> 8 & 0xF] != Registers.V[Opcode >> 4 & 0xF]);
 		break;
 	}
 	case 0xA: // LD I : Assign Index register
@@ -244,29 +244,29 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	}
 	case 0xC: // Random number generator
 	{
-		Registers.V[(Opcode >> 8) & 0xF] = std::uniform_int_distribution<std::size_t>(0, 0xFF)(RandEng);
-		Registers.V[(Opcode >> 8) & 0xF] &= (Opcode & 0xFF);
+		Registers.V[Opcode >> 8 & 0xF] = std::uniform_int_distribution<std::size_t>(0, 0xFF)(RandEng);
+		Registers.V[Opcode >> 8 & 0xF] &= Opcode & 0xFF;
 		break;
 	}
 	case 0xD: // Draw 8xN sprite at (x,y) with collision flag
 	{
-		std::uint8_t SX = Registers.V[(Opcode >> 8) & 0xF];
-		std::uint8_t SY = Registers.V[(Opcode >> 4) & 0xF];
-		std::uint8_t Height = Opcode & 0xF;
+		const std::uint8_t SX = Registers.V[Opcode >> 8 & 0xF];
+		const std::uint8_t SY = Registers.V[Opcode >> 4 & 0xF];
+		const std::uint8_t Height = Opcode & 0xF;
 		Registers.V[0xF] = 0;
 		for( std::size_t Y = 0; Y < Height; Y++ )
 		{
-			std::uint8_t Pixel = Memory.Data[Registers.I + Y];
+			const std::uint8_t Pixel = Memory.Data[Registers.I + Y];
 			for( std::size_t X = 0; X < 8; X++ )
 			{
-				if( Pixel & (0x80 >> X) )
+				if( Pixel & 0x80 >> X )
 				{
-					if( Display.Screen[X + SX + ((Y + SY) * Width)] )
+					if( Display.Screen[X + SX + (Y + SY) * Width] )
 					{
 						// Collision
 						Registers.V[0xF] = 1;
 					}
-					Display.Screen[X + SX + ((Y + SY) * Width)] ^= 1;
+					Display.Screen[X + SX + (Y + SY) * Width] ^= 1;
 				}
 			}
 		}
@@ -281,12 +281,12 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 		{
 		case 0x9E: // SKP : Skip if key is pressed
 		{
-			Registers.PC += 2 * ((Keyboard.KeyStates >> Key) & 1);
+			Registers.PC += 2 * (Keyboard.KeyStates >> Key & 1);
 			break;
 		}
 		case 0xA1: // SKNP : Skip if key is not pressed
 		{
-			Registers.PC += 2 * (((Keyboard.KeyStates >> Key) & 1) ^ 1);
+			Registers.PC += 2 * (Keyboard.KeyStates >> Key & 1 ^ 1);
 			break;
 		}
 		}
@@ -294,28 +294,27 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	}
 	case 0xF: //
 	{
-		std::uint8_t* Arg = &(Registers.V[(Opcode >> 8) & 0xF]);
+		std::uint8_t* Arg = &Registers.V[Opcode >> 8 & 0xF];
 		switch( Opcode & 0xFF )
 		{
 		case 0x07: // LD : Load Delay Timer
 		{
-			*Arg = (Timer.Delay / TimerRate);
+			*Arg = Timer.Delay / TimerRate.count();
 			break;
 		}
 		case 0x0A: // LD : Load upon Keypress
 		{
-			// honk
-			printf("honk");
+			// Not implemented
 			break;
 		}
 		case 0x15: // LD : Set Delay Timer
 		{
-			Timer.Delay = TimerRate * (*Arg);
+			Timer.Delay = TimerRate.count() * *Arg;
 			break;
 		}
 		case 0x18: // LD: Set Sound Timer
 		{
-			Timer.Sound = TimerRate * (*Arg);
+			Timer.Sound = TimerRate.count() * *Arg;
 			break;
 		}
 		case 0x1E: // ADD : Increment Index
@@ -331,7 +330,7 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 		case 0x33: // LD : Store BDC representation of VX at Index
 		{
 			Memory.Data[Registers.I] = *Arg / 100;
-			Memory.Data[Registers.I + 1] = (*Arg / 10) % 10;
+			Memory.Data[Registers.I + 1] = *Arg / 10 % 10;
 			Memory.Data[Registers.I + 2] = *Arg % 10;
 			break;
 		}
@@ -339,15 +338,15 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 		{
 			std::copy_n(
 				std::begin(Registers.V),
-				(Opcode >> 8) & 0xF,
+				Opcode >> 8 & 0xF,
 				&Memory.Data[Registers.I]);
 			break;
 		}
 		case 0x65: // LD : Read all General Registers V0 to VX from Index
 		{
 			std::copy_n(
-				&(Memory.Data[Registers.I]),
-				((Opcode >> 8) & 0xF) + 1,
+				&Memory.Data[Registers.I],
+				(Opcode >> 8 & 0xF) + 1,
 				std::begin(Registers.V)
 			);
 			break;
@@ -367,7 +366,11 @@ bool Chip8::Tick(const std::chrono::milliseconds DeltaTime)
 	if( Timer.Sound )
 	{
 		Timer.Sound -= std::min<std::size_t>(DeltaTime.count(), Timer.Sound);
-		Timer.Sound || putchar(0x7);// bell character
+		if(Timer.Sound == 0)
+		{
+			// Bell character
+			putchar(0x7);
+		}
 	}
 	return true;
 }
